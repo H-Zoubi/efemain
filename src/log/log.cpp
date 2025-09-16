@@ -10,7 +10,11 @@ void Log::Init(bool LogFile, bool LogSerial, const char* RootLogDirPath)
     s_LogFile = LogFile;
     s_LogSerial = LogSerial;
     if (s_LogSerial)
-        Serial.begin(1155200); // baud const for all esp boards
+    {
+        Serial.begin(115200); // 115200 baud const for all esp boards
+        while (!Serial)
+            delay(10);
+    }
 }
 
 void Log::DBG_LogError(const char* str)
