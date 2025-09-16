@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RTCLib/RTClib.h"
 #include <Arduino.h>
 
 struct PowerData
@@ -15,4 +16,5 @@ class HardwareLayer
   public:
     static void Init();
     static PowerData GetPowerMeasurements();
+    static DateTime GetRTCTime();
 };

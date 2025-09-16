@@ -3,6 +3,9 @@
 #include <PinDefenitions.h>
 #include <Wire.h>
 
+#include "RTCLib/RTClib.h"
+#include "Wire.h"
+
 #ifdef DEBUG
 static void DBG_PrintPowerData(PowerData& pd)
 {
@@ -24,6 +27,7 @@ static void DBG_PrintPowerData(PowerData& pd)
 #endif // DEBUG
 
 static Adafruit_INA219 ina219;
+static RTC_DS1307 rtc;
 
 void HardwareLayer::Init()
 {
@@ -31,6 +35,7 @@ void HardwareLayer::Init()
     digitalWrite(IC_ENABLE, HIGH);
     Wire.begin(SDA_PIN, SCL_PIN);
 
+    // ina==================================================================
     // Initialize INA219 sensor
     if (!ina219.begin())
     {
@@ -39,6 +44,21 @@ void HardwareLayer::Init()
             ; // Stop execution
     }
     Serial.println("INA219 initialized!");
+
+    // rtc==================================================================
+    if (!rtc.begin())
+    {
+        Serial.println("Couldn't find RTC");
+        Serial.flush();
+        while (1)
+            delay(10);
+    }
+    rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+
+    if (!rtc.isrunning())
+    {
+        Serial.println("RTC is NOT running, let's set the time!");
+    }
 }
 
 PowerData HardwareLayer::GetPowerMeasurements()
@@ -58,4 +78,11 @@ PowerData HardwareLayer::GetPowerMeasurements()
 #endif                      // DEBUG
 
     return pd;
+}
+
+DateTime HardwareLayer::GetRTCTime()
+{
+
+    return rtc.now();
+    // DateTime time = rtc.now();
 }

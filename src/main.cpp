@@ -20,7 +20,19 @@ void loop()
 {
 
     PowerData pd = HardwareLayer::GetPowerMeasurements();
+    DateTime dt = HardwareLayer::GetRTCTime();
+    // Full Timestamp
+    Serial.println(String("DateTime::TIMESTAMP_FULL:\t") + dt.timestamp(DateTime::TIMESTAMP_FULL));
+
+    // Date Only
+    Serial.println(String("DateTime::TIMESTAMP_DATE:\t") + dt.timestamp(DateTime::TIMESTAMP_DATE));
+
+    // Full Timestamp
+    Serial.println(String("DateTime::TIMESTAMP_TIME:\t") + dt.timestamp(DateTime::TIMESTAMP_TIME));
+
+    Serial.println("\n");
+
     // Display readings
-    Log::DBG_LogInfo("Test Info");
+    Log::DBG_LogInfo("Test Info#1");
     delay(500);
 };
