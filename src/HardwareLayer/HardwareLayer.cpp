@@ -2,12 +2,23 @@
 #include <Adafruit_INA219.h>
 #include <PinDefenitions.h>
 #include <Wire.h>
+#include <cstdint>
 
 #include "RTCLib/RTClib.h"
 #include "Wire.h"
 
+const uint8_t LED_ON = 255;
+const uint8_t LED_OFF = 0;
+
+static void setColor(int red, int green, int blue)
+{
+    analogWrite(RED_PIN, red);
+    analogWrite(GREEN_PIN, green);
+    analogWrite(BLUE_PIN, blue);
+}
+
 #ifdef DEBUG
-static void DBG_PrintPowerData(PowerData& pd)
+static void DBG_PrintPowerData(SensorData& pd)
 {
 
     Serial.print("Bus Voltage:   ");
@@ -59,29 +70,43 @@ void HardwareLayer::Init()
     {
         Serial.println("RTC is NOT running, let's set the time!");
     }
+
+    // rgb leds=============================================================
 }
 
-PowerData HardwareLayer::GetPowerMeasurements()
+SensorData HardwareLayer::GetSensorData()
 {
 
-    PowerData pd;
-    pd.shuntVoltage = ina219.getShuntVoltage_mV() / 1000.0;
+    SensorData sd;
+    sd.shuntVoltage = ina219.getShuntVoltage_mV() / 1000.0;
     // Read bus voltage (in volts)
-    pd.busVoltage = ina219.getBusVoltage_V();
+    sd.busVoltage = ina219.getBusVoltage_V();
     // Read current (in mA)
-    pd.current_mA = ina219.getCurrent_mA();
+    sd.current_mA = ina219.getCurrent_mA();
     // Read power (in mW)
-    pd.power_mW = ina219.getPower_mW();
+    sd.power_mW = ina219.getPower_mW();
 
 #ifdef DEBUG
-    DBG_PrintPowerData(pd); // temp
-#endif                      // DEBUG
+    // DBG_PrintPowerData(sd); // temp
+#endif // DEBUG
 
-    return pd;
+    return sd;
 }
 
 DateTime HardwareLayer::GetRTCTime()
 {
     return rtc.now();
     // DateTime time = rtc.now();
+}
+
+void HardwareLayer::LEDSetColor(int red, int green, int blue)
+{
+    analogWrite(RED_PIN, red);
+    analogWrite(GREEN_PIN, green);
+    analogWrite(BLUE_PIN, blue);
+}
+
+void HardwareLayer::LEDTurnOff()
+{
+    LEDSetColor(LED_OFF, LED_OFF, LED_OFF);
 }

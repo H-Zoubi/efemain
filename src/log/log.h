@@ -1,5 +1,11 @@
 #pragma once
 
+// SD
+#include "FS.h"
+#include "HardwareLayer/HardwareLayer.h"
+#include "SD.h"
+#include "SPI.h"
+
 class Log
 {
   public:
@@ -9,5 +15,11 @@ class Log
     static void DBG_LogWarning(const char* str);
     static void DBG_LogInfo(const char* str);
 
+    static void CheckAndPackageNewDay(uint8_t DayOnLastCheck);
+    static void LogDataToCurrent(SensorData& data);
+
   private:
+    static void writeFile(const char* path, const char* message);
+    static void appendFile(const char* path, const char* message);
+    static void renameFile(const char* path1, const char* path2);
 };
