@@ -6,7 +6,7 @@
 #include "PinDefenitions.h"
 #include <log/log.h>
 
-void setup()
+void Osetup()
 {
     Log::Init(true, true, "");
     delay(3000);
@@ -16,7 +16,7 @@ void setup()
     HardwareLayer::Init();
 }
 
-void loop()
+void Oloop()
 {
 
     PowerData pd = HardwareLayer::GetPowerMeasurements();

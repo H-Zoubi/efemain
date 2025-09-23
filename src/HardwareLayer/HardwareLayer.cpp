@@ -82,7 +82,18 @@ PowerData HardwareLayer::GetPowerMeasurements()
 
 DateTime HardwareLayer::GetRTCTime()
 {
-
     return rtc.now();
     // DateTime time = rtc.now();
+}
+
+int HardwareLayer::GetBatteryLevel()
+{
+    return 70; // temp
+}
+
+void HardwareLayer::SetLED(bool r, bool g, bool b)
+{
+    analogWrite(RED_PIN, 255 * (int)r);
+    analogWrite(GREEN_PIN, 255 * (int)g);
+    analogWrite(BLUE_PIN, 222 * (int)b);
 }

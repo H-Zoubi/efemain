@@ -1,4 +1,5 @@
 #include "log.h"
+#include "HardwareLayer/HardwareLayer.h"
 #include "HardwareSerial.h"
 #include <Arduino.h>
 
@@ -45,3 +46,6 @@ void Log::DBG_LogInfo(const char* str)
         Serial.println(str);
     }
 }
+// bool Log::DATA_LogSensorData()
+// {
+// }

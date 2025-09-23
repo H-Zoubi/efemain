@@ -17,4 +17,6 @@ class HardwareLayer
     static void Init();
     static PowerData GetPowerMeasurements();
     static DateTime GetRTCTime();
+    static int GetBatteryLevel();
+    static void SetLED(bool r, bool g, bool b);
 };
