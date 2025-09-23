@@ -34,7 +34,7 @@ void setup()
     // HardwareLayer::Init();
     Log::DBG_LogInfo("Test BLE Start");
 
-    BLEDevice::init("Nexus-ldfjasgh-Board");
+    BLEDevice::init("Nexus-Board");
     BLEServer* pServer = BLEDevice::createServer();
     pServer->setCallbacks(new MyServerCallbacks());
 
