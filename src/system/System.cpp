@@ -14,6 +14,7 @@ void System::Init()
 
     Log::Init(true, true, "");
     NexusBLE::Init();
+    HardwareLayer::Buzzer(false);
 }
 void System::Update()
 {
@@ -49,15 +50,15 @@ void System::StateBLEWake()
 {
     Log::DBG_LogInfo("BLE");
 
-    // SensorData dummyData;
-    // dummyData.busVoltage = 1;
-    // dummyData.temperature = 2;
-    // dummyData.humidity = 3;
-    // dummyData.soilMoisture = 8;
-    // NexusBLE::sendRealTimeData(dummyData);
+    SensorData dummyData;
+    dummyData.busVoltage = 1;
+    dummyData.temperature = 2;
+    dummyData.humidity = 3;
+    dummyData.soilMoisture = 8;
+    NexusBLE::sendRealTimeData(dummyData);
 
-    SensorData sensorData = HardwareLayer::GetSensorData();
-    NexusBLE::sendRealTimeData(sensorData);
+    // SensorData sensorData = HardwareLayer::GetSensorData();
+    // NexusBLE::sendRealTimeData(sensorData);
 }
 
 void System::StateError()

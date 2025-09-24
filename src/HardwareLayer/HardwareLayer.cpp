@@ -4,6 +4,7 @@
 #include <Wire.h>
 #include <cstdint>
 
+#include "Arduino.h"
 #include "RTCLib/RTClib.h"
 #include "Wire.h"
 #include "esp32-hal-gpio.h"
@@ -50,6 +51,9 @@ static void DBG_PrintSensorData(SensorData& pd)
     Serial.print("humidity:         ");
     Serial.print(pd.humidity);
     Serial.println(" %");
+    Serial.print("soilMoisture:         ");
+    Serial.print(pd.soilMoisture);
+    Serial.println(" ");
     Serial.println("");
 }
 #endif // DEBUG
@@ -106,6 +110,9 @@ void HardwareLayer::Init()
     delay(10);
 
     Serial.println("-- SMT Starting... --");
+    // buzzer
+    pinMode(BUZZER_PIN, OUTPUT);
+    digitalWrite(_5V_ENABLE, HIGH);
 }
 
 SensorData HardwareLayer::GetSensorData()
@@ -138,6 +145,15 @@ void HardwareLayer::LEDSetColor(int red, int green, int blue)
     analogWrite(RED_PIN, red);
     analogWrite(GREEN_PIN, green);
     analogWrite(BLUE_PIN, blue);
+}
+
+void HardwareLayer::Buzzer(bool b)
+{
+    digitalWrite(BUZZER_PIN, b);
+}
+int HardwareLayer::GetBatteryPercentage(SensorData& sd)
+{
+    return map((long)(sd.busVoltage * 10), 25, 42, 0, 100);
 }
 
 void HardwareLayer::enableTransmission()
