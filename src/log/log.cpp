@@ -95,17 +95,18 @@ void Log::CheckForDataFile()
 
 // csv format:
 // Time Stamp , shunt voltage , bus voltage, current, power, XX
-void Log::LogData(SensorData& data)
+void Log::LogData(SensorData* data)
 {
     auto time = HardwareLayer::GetRTCTime();
     String csvFormattedData =
         String(time.timestamp(DateTime::TIMESTAMP_FULL)) + "," //
-        + String(data.shuntVoltage) + ","                      //
-        + String(data.busVoltage) + ","                        //
-        + String(data.current_mA) + ","                        //
-        + String(data.power_mW)                                //
-                                // Add new Data entries here! (dont forget to change header too! @CheckAndPackageNewDay)
-        + "\n"; // END
+        + String(data->shuntVoltage) + ","                     //
+        + String(data->busVoltage) + ","                       //
+        + String(data->current_mA) + ","                       //
+        +
+        String(data->power_mW) //
+                               // Add new Data entries here! (dont forget to change header too! @CheckAndPackageNewDay)
+        + "\n";                // END
 
     appendFile("/data.csv", csvFormattedData.c_str()); // save file to disk
 }

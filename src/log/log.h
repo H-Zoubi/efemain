@@ -16,7 +16,7 @@ class Log
     static void DBG_LogInfo(const char* str);
 
     static void CheckForDataFile();
-    static void LogData(SensorData& data);
+    static void LogData(SensorData* data);
 
   private:
     static void writeFile(const char* path, const char* message);

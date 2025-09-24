@@ -115,20 +115,20 @@ void HardwareLayer::Init()
     digitalWrite(_5V_ENABLE, HIGH);
 }
 
-SensorData HardwareLayer::GetSensorData()
+SensorData* HardwareLayer::GetSensorData()
 {
 
-    SensorData sd;
-    sd.shuntVoltage = ina219.getShuntVoltage_mV() / 1000.0;
+    SensorData* sd = new SensorData;
+    sd->shuntVoltage = ina219.getShuntVoltage_mV() / 1000.0;
     // Read bus voltage (in volts)
-    sd.busVoltage = ina219.getBusVoltage_V();
-    sd.current_mA = ina219.getCurrent_mA();
-    sd.power_mW = ina219.getPower_mW();
-    sd.temperature = bme.readTemperature();
-    sd.humidity = bme.readHumidity();
-    sd.soilMoisture = readSoilMoisture();
+    sd->busVoltage = ina219.getBusVoltage_V();
+    sd->current_mA = ina219.getCurrent_mA();
+    sd->power_mW = ina219.getPower_mW();
+    sd->temperature = bme.readTemperature();
+    sd->humidity = bme.readHumidity();
+    sd->soilMoisture = readSoilMoisture();
 #ifdef DEBUG
-    DBG_PrintSensorData(sd);
+    DBG_PrintSensorData(*sd);
 #endif // DEBUG
 
     return sd;
@@ -151,9 +151,9 @@ void HardwareLayer::Buzzer(bool b)
 {
     digitalWrite(BUZZER_PIN, b);
 }
-int HardwareLayer::GetBatteryPercentage(SensorData& sd)
+int HardwareLayer::GetBatteryPercentage(SensorData* sd)
 {
-    return map((long)(sd.busVoltage * 10), 25, 42, 0, 100);
+    return map((long)(sd->busVoltage * 10), 25, 42, 0, 100);
 }
 
 void HardwareLayer::enableTransmission()

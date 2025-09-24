@@ -23,11 +23,11 @@ class HardwareLayer
 {
   public:
     static void Init();
-    static SensorData GetSensorData();
+    static SensorData* GetSensorData();
     static DateTime GetRTCTime();
     static void LEDSetColor(int red, int green, int blue);
     static void Buzzer(bool b);
-    static int GetBatteryPercentage(SensorData& sd);
+    static int GetBatteryPercentage(SensorData* sd);
 
   private:
     static float readSoilMoisture();
