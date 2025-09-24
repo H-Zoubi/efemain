@@ -1,4 +1,6 @@
 #include "./NexusBLE.h"
+#include "HardwareLayer/HardwareLayer.h"
+#include "RTCLib/RTClib.h"
 
 bool validateJSON(const String& jsonStr); // remove
 #include "./base64.hpp"
@@ -54,9 +56,9 @@ bool cropConfigured = false;
 static bool m_DeviceConnected;
 static bool m_OldDeviceConnected;
 static bool m_DataTransmissionEnabled;
+
 void NexusBLE::SetConnected(bool c)
 {
-
     m_DeviceConnected = c;
     m_DataTransmissionEnabled = c;
 }
@@ -168,75 +170,76 @@ void NexusBLE::initBLE()
     BLEDevice::startAdvertising();
 }
 
-void processConfigurationData(const String& characteristic, const String& data)
-{
-    Serial.println("🔄 Processing " + characteristic + "...");
+// TODO: This function is used to recive the config from app on initail connect (l8r problem).
+// void pzrocessConfigurationData(const String& characteristic, const String& data)
+// {
+//     Serial.println("🔄 Processing " + characteristic + "...");
+//
+//     String decodedData = data;
+//
+//     // Try to decode Base64 if needed
+//     if (data.indexOf("{") == -1 && data.indexOf("}") == -1)
+//     {
+//         decodedData = decodeBase64(data);
+//     }
+//
+//     Serial.println("📋 Decoded data length: " + String(decodedData.length()));
+//
+//     // Validate and process JSON
+//     if (validateJSON(decodedData))
+//     {
+//         Serial.println("✅ JSON validation passed");
+//
+//         // Extract crop information from INITIAL_CONFIG
+//         if (characteristic == "INITIAL_CONFIG")
+//         {
+//             JsonDocument doc;
+//             deserializeJson(doc, decodedData);
+//
+//             if (doc["crop"].is<String>())
+//             {
+//                 currentCrop = doc["crop"].as<String>();
+//                 Serial.println("🌱 Crop configured: " + currentCrop);
+//             }
+//
+//             if (doc["farmingType"].is<String>())
+//             {
+//                 currentFarmingType = doc["farmingType"].as<String>();
+//                 Serial.println("🚜 Farming type: " + currentFarmingType);
+//             }
+//
+//             cropConfigured = true;
+//         }
+//
+//         // Store the configuration message
+//         configMessages[configMessageIndex].characteristic = characteristic;
+//         configMessages[configMessageIndex].jsonData = decodedData;
+//         configMessages[configMessageIndex].timestamp = String(millis() / 1000) + "s ago";
+//
+//         configMessageIndex = (configMessageIndex + 1) % 10;
+//         totalConfigMessages++;
+//
+//         Serial.println("💾 Configuration stored successfully");
+//     }
+//     else
+//     {
+//         Serial.println("❌ Invalid JSON structure");
+//     }
+//
+//     Serial.println("========================================");
+// }
 
-    String decodedData = data;
-
-    // Try to decode Base64 if needed
-    if (data.indexOf("{") == -1 && data.indexOf("}") == -1)
-    {
-        decodedData = decodeBase64(data);
-    }
-
-    Serial.println("📋 Decoded data length: " + String(decodedData.length()));
-
-    // Validate and process JSON
-    if (validateJSON(decodedData))
-    {
-        Serial.println("✅ JSON validation passed");
-
-        // Extract crop information from INITIAL_CONFIG
-        if (characteristic == "INITIAL_CONFIG")
-        {
-            JsonDocument doc;
-            deserializeJson(doc, decodedData);
-
-            if (doc["crop"].is<String>())
-            {
-                currentCrop = doc["crop"].as<String>();
-                Serial.println("🌱 Crop configured: " + currentCrop);
-            }
-
-            if (doc["farmingType"].is<String>())
-            {
-                currentFarmingType = doc["farmingType"].as<String>();
-                Serial.println("🚜 Farming type: " + currentFarmingType);
-            }
-
-            cropConfigured = true;
-        }
-
-        // Store the configuration message
-        configMessages[configMessageIndex].characteristic = characteristic;
-        configMessages[configMessageIndex].jsonData = decodedData;
-        configMessages[configMessageIndex].timestamp = String(millis() / 1000) + "s ago";
-
-        configMessageIndex = (configMessageIndex + 1) % 10;
-        totalConfigMessages++;
-
-        Serial.println("💾 Configuration stored successfully");
-    }
-    else
-    {
-        Serial.println("❌ Invalid JSON structure");
-    }
-
-    Serial.println("========================================");
-}
-
-void NexusBLE::sendRealTimeData()
+void NexusBLE::sendRealTimeData(SensorData& sd)
 {
     if (!m_DeviceConnected || !m_DataTransmissionEnabled)
         return;
 
-    unsigned long currentTime = millis();
-
+    // unsigned long currentTime = millis();
+    String currentTime = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_TIME);
     // Create and send SMT100 data
     JsonDocument smt100Doc;
     smt100Doc["timestamp"] = currentTime;
-    smt100Doc["soil_moisture"] = 1;
+    smt100Doc["soil_moisture"] = sd.soilMoisture;
 
     String smt100Json;
     serializeJson(smt100Doc, smt100Json);
@@ -248,8 +251,8 @@ void NexusBLE::sendRealTimeData()
     // Create and send BME280-01 data
     JsonDocument bme01Doc;
     bme01Doc["timestamp"] = currentTime;
-    bme01Doc["temperature"] = 2;
-    bme01Doc["humidity"] = 3;
+    bme01Doc["temperature"] = sd.temperature;
+    bme01Doc["humidity"] = sd.humidity;
 
     String bme01Json;
     serializeJson(bme01Doc, bme01Json);
@@ -261,8 +264,8 @@ void NexusBLE::sendRealTimeData()
     // Create and send BME280-02 data
     JsonDocument bme02Doc;
     bme02Doc["timestamp"] = currentTime;
-    bme02Doc["temperature"] = 4;
-    bme02Doc["humidity"] = 5;
+    bme02Doc["temperature"] = sd.temperature;
+    bme02Doc["humidity"] = sd.humidity;
 
     String bme02Json;
     serializeJson(bme02Doc, bme02Json);

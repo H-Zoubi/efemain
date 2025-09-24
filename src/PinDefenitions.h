@@ -14,3 +14,15 @@ const int icEnable = 21;
 const int RED_PIN = 17;
 const int GREEN_PIN = 16;
 const int BLUE_PIN = 15;
+
+// SMT
+
+#define SEALEVELPRESSURE_HPA (1013.25)
+
+#define RXD2 40
+#define TXD2 41
+
+#define RE_PIN 38 // Receiver Enable (Active Low)
+#define DE_PIN 39 // Driver Enable (Active High)
+
+#define BAUD 9600

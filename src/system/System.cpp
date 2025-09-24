@@ -9,63 +9,57 @@ void System::Init()
 {
     HardwareLayer::Init();
 #ifdef DEBUG
-    delay(3000);
-#endif // DEBUG
+    delay(3000); // for propper serial communication
+#endif           // DEBUG
 
     Log::Init(true, true, "");
     NexusBLE::Init();
-    // SensorData sd = HardwareLayer::GetSensorData();
-    // DateTime dt = HardwareLayer::GetRTCTime();
 }
 void System::Update()
 {
     switch (m_State)
     {
     case SystemState::NONE:
-        Log::DBG_LogError("State Is None");
+        Log::DBG_LogError("State is None");
         SetState(SystemState::ERROR);
         return;
     case SystemState::SLEEP_LOOP:
+        m_SleepTime = 60000; // set at 1min for saving to SD Card mode
         StateSleepLoop();
         return;
     case SystemState::BLE_WAKE:
+        m_SleepTime = 100; // set at .1 sec for bluetooth communication
         StateBLEWake();
         return;
     case SystemState::ERROR:
     default:
         break;
     }
-    Log::DBG_LogInfo("3");
 }
 
 void System::StateSleepLoop()
 {
-
+    Log::DBG_LogInfo("Cycle");
     SensorData sensorData = HardwareLayer::GetSensorData();
     Log::CheckForDataFile();
     Log::LogData(sensorData);
-    Log::DBG_LogInfo("Cycle.");
 }
 
 void System::StateBLEWake()
 {
-    SensorData sensorData = HardwareLayer::GetSensorData();
     Log::DBG_LogInfo("BLE");
-    NexusBLE::sendRealTimeData();
+
+    // SensorData dummyData;
+    // dummyData.busVoltage = 1;
+    // dummyData.temperature = 2;
+    // dummyData.humidity = 3;
+    // dummyData.soilMoisture = 8;
+    // NexusBLE::sendRealTimeData(dummyData);
+
+    SensorData sensorData = HardwareLayer::GetSensorData();
+    NexusBLE::sendRealTimeData(sensorData);
 }
 
 void System::StateError()
 {
 }
-// Full Timestamp
-// Serial.println(String("DateTime::TIMESTAMP_FULL:\t") + dt.timestamp(DateTime::TIMESTAMP_FULL));
-
-// Date Only
-// Serial.println(String("DateTime::TIMESTAMP_DATE:\t") + dt.timestamp(DateTime::TIMESTAMP_DATE));
-
-// Full Timestamp
-// Serial.println(String("DateTime::TIMESTAMP_TIME:\t") + dt.timestamp(DateTime::TIMESTAMP_TIME));
-
-// Serial.println("\n");
-
-// Display readings

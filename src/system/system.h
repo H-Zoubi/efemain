@@ -46,5 +46,5 @@ class System
   private:
     SystemState m_State;
     uint8_t m_CurrentDay = 0; // current day of the week // for detecting new a day // Range:(1-31)
-    int m_SleepTime = 1000;   // default sleep time at 5 sec (too little, better change in constructor)
+    int m_SleepTime = 5000;   // default sleep time at 5 sec (too little, better change in constructor)
 };

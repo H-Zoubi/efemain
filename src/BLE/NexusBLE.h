@@ -1,5 +1,6 @@
 #pragma once
 
+#include "HardwareLayer/HardwareLayer.h"
 #include <Arduino.h>
 
 #include <BLE2902.h>
@@ -17,12 +18,12 @@ struct ReceivedMessage
     String timestamp;
 };
 
-void processConfigurationData(const String& characteristic, const String& data); // change or remove or move
+// void processConfigurationData(const String& characteristic, const String& data); // change or remove or move
 class NexusBLE
 {
   public:
     static void Init();
-    static void sendRealTimeData();
+    static void sendRealTimeData(SensorData& sd);
 
     static void SetConnected(bool c);
 
@@ -69,7 +70,7 @@ class ConfigCharacteristicCallbacks : public BLECharacteristicCallbacks
             String characteristic = String(characteristicName);
 
             Serial.printf("📡 Received %s configuration (%zu bytes)\n", characteristicName, length);
-            processConfigurationData(characteristic, data);
+            // processConfigurationData(characteristic, data); // TODO: Add this function l8r
         }
     }
 };

@@ -14,7 +14,8 @@ System syst;
 void setup()
 {
     syst.Init();
-    syst.SetState(SystemState::BLE_WAKE);
+    syst.SetState(SystemState::SLEEP_LOOP); // for Saving Sensor Data To SDCard
+    syst.SetState(SystemState::BLE_WAKE);   // for bluetooth communication
 }
 
 void loop()
