@@ -9,16 +9,16 @@
 #include "FS.h"
 #include "SD.h"
 #include "SPI.h"
-
+#include "log/log.h"
 System syst;
 void setup()
 {
     syst.Init();
+    syst.SetState(SystemState::BLE_WAKE);
 }
 
 void loop()
 {
     syst.Update();
-
     delay(syst.GetSleepTime()); // change to a mopre mature value or change to deep sleep
 };

@@ -15,8 +15,8 @@ class Log
     static void DBG_LogWarning(const char* str);
     static void DBG_LogInfo(const char* str);
 
-    static void CheckAndPackageNewDay(uint8_t DayOnLastCheck);
-    static void LogDataToCurrent(SensorData& data);
+    static void CheckForDataFile();
+    static void LogData(SensorData& data);
 
   private:
     static void writeFile(const char* path, const char* message);

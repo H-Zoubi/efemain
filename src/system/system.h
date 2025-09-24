@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BLE/NexusBLE.h"
+#include "log/log.h"
 #include <cstdint>
 enum class SystemState
 {
@@ -8,11 +10,13 @@ enum class SystemState
     BLE_WAKE,
     ERROR,
 };
-const int FiveMinutes = 1000 * 60 * 5; // in ms
+// const int FiveMinutes = 1000 * 60 * 5; // in ms
+// const int FiveSeconds = 1000 * 5; // in ms
 class System
 {
   public:
-    System() : m_SleepTime(FiveMinutes) {};
+    // System() : m_SleepTime(FiveSeconds) {};
+    System() {};
     ~System() {};
 
     void Init();
@@ -36,10 +40,11 @@ class System
 
   private:
     void StateSleepLoop();
+    void StateBLEWake();
     void StateError();
 
   private:
     SystemState m_State;
     uint8_t m_CurrentDay = 0; // current day of the week // for detecting new a day // Range:(1-31)
-    int m_SleepTime = 5000;   // default sleep time at 5 sec (too little, better change in constructor)
+    int m_SleepTime = 1000;   // default sleep time at 5 sec (too little, better change in constructor)
 };

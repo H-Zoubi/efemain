@@ -16,8 +16,6 @@ void Log::Init(bool LogFile, bool LogSerial, const char* RootLogDirPath)
     if (s_LogSerial)
     {
         Serial.begin(115200); // 115200 baud const for all esp boards
-        while (!Serial)
-            delay(10);
     }
     if (s_LogFile)
     {
@@ -48,7 +46,7 @@ void Log::DBG_LogError(const char* str)
     }
     if (s_LogFile)
     {
-        String messagae = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_FULL) + " [ERROR] >> " + str;
+        String messagae = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_FULL) + " [ERROR] >> " + str + "\n";
         appendFile("/error.txt", messagae.c_str());
     }
 }
@@ -62,7 +60,8 @@ void Log::DBG_LogWarning(const char* str)
     }
     if (s_LogFile)
     {
-        String messagae = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_FULL) + " [WARNING] >> " + str;
+        String messagae =
+            HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_FULL) + " [WARNING] >> " + str + "\n";
         appendFile("/warning.txt", messagae.c_str());
     }
 }
@@ -75,36 +74,32 @@ void Log::DBG_LogInfo(const char* str)
     }
     if (s_LogFile)
     {
-        String messagae = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_FULL) + " [INFO] >> " + str;
-        appendFile("/info.txt", messagae.c_str());
+        String messagae = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_FULL) + " [INFO] >> " + str + "\n";
+        // appendFile("/info.txt", messagae.c_str());
     }
 }
-void Log::CheckAndPackageNewDay(uint8_t DayOnLastCheck)
+void Log::CheckForDataFile()
 {
-    auto time = HardwareLayer::GetRTCTime();
-    if (DayOnLastCheck == time.day())
-        return;
+    const char* path = "/data.csv";
+    Serial.printf("Reading file: %s\n", path);
 
-    // new day detected!
-    // must:
-    // - rename (current.csv -> [DATE].csv)
-    // - create new current.csv
-    // - insert csv header
-
-    String NewFileName = time.timestamp(DateTime::TIMESTAMP_DATE);
-    renameFile("/current.csv", NewFileName.c_str());
-    String Header = String() + "TIMESTAMP," + "SHUNTVOLTAGE," + "BUSVOLTAGE," + "CURRENT," + "POWER" +
-                    "\n"; // Change Header when adding adding fields
-    writeFile("/current.csv", Header.c_str());
+    File file = SD.open(path);
+    if (!file)
+    {
+        String Header = String() + "TIMESTAMP," + "SHUNTVOLTAGE," + "BUSVOLTAGE," + "CURRENT," + "POWER" +
+                        "\n"; // Change Header when adding adding fields
+        writeFile("/data.csv", Header.c_str());
+        DBG_LogInfo("Created new Data file");
+    }
 }
 
 // csv format:
 // Time Stamp , shunt voltage , bus voltage, current, power, XX
-void Log::LogDataToCurrent(SensorData& data)
+void Log::LogData(SensorData& data)
 {
     auto time = HardwareLayer::GetRTCTime();
     String csvFormattedData =
-        String(time.timestamp(DateTime::TIMESTAMP_TIME)) + "," //
+        String(time.timestamp(DateTime::TIMESTAMP_FULL)) + "," //
         + String(data.shuntVoltage) + ","                      //
         + String(data.busVoltage) + ","                        //
         + String(data.current_mA) + ","                        //
@@ -112,7 +107,7 @@ void Log::LogDataToCurrent(SensorData& data)
                                 // Add new Data entries here! (dont forget to change header too! @CheckAndPackageNewDay)
         + "\n"; // END
 
-    appendFile("/current.csv", csvFormattedData.c_str()); // save file to disk
+    appendFile("/data.csv", csvFormattedData.c_str()); // save file to disk
 }
 
 void Log::writeFile(const char* path, const char* message)
@@ -144,6 +139,7 @@ void Log::appendFile(const char* path, const char* message)
     if (!file)
     {
         Serial.println("Failed to open file for appending");
+        file.close();
         return;
     }
     if (file.print(message))
