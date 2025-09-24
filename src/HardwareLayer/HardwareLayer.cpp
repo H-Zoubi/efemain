@@ -4,7 +4,6 @@
 #include <Wire.h>
 #include <cstdint>
 
-#include "Arduino.h"
 #include "RTCLib/RTClib.h"
 #include "Wire.h"
 #include "esp32-hal-gpio.h"
@@ -51,9 +50,9 @@ static void DBG_PrintSensorData(SensorData& pd)
     Serial.print("humidity:         ");
     Serial.print(pd.humidity);
     Serial.println(" %");
-    Serial.print("soilMoisture:         ");
+        Serial.print("Soil:         ");
     Serial.print(pd.soilMoisture);
-    Serial.println(" ");
+    Serial.println(" %");
     Serial.println("");
 }
 #endif // DEBUG
@@ -110,25 +109,22 @@ void HardwareLayer::Init()
     delay(10);
 
     Serial.println("-- SMT Starting... --");
-    // buzzer
-    pinMode(BUZZER_PIN, OUTPUT);
-    digitalWrite(_5V_ENABLE, HIGH);
 }
 
-SensorData* HardwareLayer::GetSensorData()
+SensorData HardwareLayer::GetSensorData()
 {
 
-    SensorData* sd = new SensorData;
-    sd->shuntVoltage = ina219.getShuntVoltage_mV() / 1000.0;
+    SensorData sd;
+    sd.shuntVoltage = ina219.getShuntVoltage_mV() / 1000.0;
     // Read bus voltage (in volts)
-    sd->busVoltage = ina219.getBusVoltage_V();
-    sd->current_mA = ina219.getCurrent_mA();
-    sd->power_mW = ina219.getPower_mW();
-    sd->temperature = bme.readTemperature();
-    sd->humidity = bme.readHumidity();
-    sd->soilMoisture = readSoilMoisture();
+    sd.busVoltage = ina219.getBusVoltage_V();
+    sd.current_mA = ina219.getCurrent_mA();
+    sd.power_mW = ina219.getPower_mW();
+    sd.temperature = bme.readTemperature();
+    sd.humidity = bme.readHumidity();
+    sd.soilMoisture = readSoilMoisture();
 #ifdef DEBUG
-    DBG_PrintSensorData(*sd);
+    DBG_PrintSensorData(sd);
 #endif // DEBUG
 
     return sd;
@@ -145,15 +141,6 @@ void HardwareLayer::LEDSetColor(int red, int green, int blue)
     analogWrite(RED_PIN, red);
     analogWrite(GREEN_PIN, green);
     analogWrite(BLUE_PIN, blue);
-}
-
-void HardwareLayer::Buzzer(bool b)
-{
-    digitalWrite(BUZZER_PIN, b);
-}
-int HardwareLayer::GetBatteryPercentage(SensorData* sd)
-{
-    return map((long)(sd->busVoltage * 10), 25, 42, 0, 100);
 }
 
 void HardwareLayer::enableTransmission()
@@ -236,4 +223,19 @@ float HardwareLayer::readSoilMoisture()
     delay(100);
 
     return soilMoisture;
+}
+
+float HardwareLayer::readTemp()
+{
+    return bme.readTemperature();
+}
+
+float HardwareLayer::readHum()
+{
+    return bme.readHumidity();
+}
+
+float HardwareLayer::readVolt()
+{
+    return ina219.getBusVoltage_V();
 }

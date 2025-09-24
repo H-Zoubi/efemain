@@ -27,6 +27,8 @@ class NexusBLE
 
     static void SetConnected(bool c);
 
+    static void SendNotification(String id);
+
   private:
     static void initBLE();
 

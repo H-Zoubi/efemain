@@ -1,4 +1,5 @@
 #include "./NexusBLE.h"
+#include "BLECharacteristic.h"
 #include "HardwareLayer/HardwareLayer.h"
 #include "RTCLib/RTClib.h"
 
@@ -28,6 +29,8 @@ bool validateJSON(const String& jsonStr); // remove
 #define BME280_01_HISTORICAL_CHAR_UUID "6E400502-B5A3-F393-E0A9-E50E24DCCA9E"
 #define BME280_02_HISTORICAL_CHAR_UUID "6E400503-B5A3-F393-E0A9-E50E24DCCA9E"
 
+#define NOTIFICATION_SERVICE_UUID "6E400002-B5A3-F393-E0A9-E50E24DCCA9E"
+#define NOTIFICATION_CHARACTERISTIC_UUID "6E400201-B5A3-F393-E0A9-E50E24DCCA9E"
 // =============================================================================
 // Static VARIABLES
 // =============================================================================
@@ -37,11 +40,13 @@ static BLEServer* pServer = nullptr;
 static BLEService* pConfigService = nullptr;
 static BLEService* pSensorService = nullptr;
 static BLEService* pHistoricalService = nullptr;
+static BLEService* pNotificationSevice = nullptr;
 
 // BLE Characteristics for real-time data
 static BLECharacteristic* pSMT100Char = nullptr;
 static BLECharacteristic* pBME280_01Char = nullptr;
 static BLECharacteristic* pBME280_02Char = nullptr;
+static BLECharacteristic* pNotificationCharacterisitc = nullptr;
 
 // remove
 ReceivedMessage configMessages[10];
@@ -122,6 +127,17 @@ void NexusBLE::initBLE()
         IRRIGATION_TIMING_CHAR_UUID, BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
     pIrrigationTiming->setCallbacks(new ConfigCharacteristicCallbacks("IRRIGATION_TIMING"));
 
+    // notifications
+    pNotificationSevice = pServer->createService(NOTIFICATION_SERVICE_UUID);
+    BLECharacteristic* Notificationcharacteristic = pConfigService->createCharacteristic(
+        NOTIFICATION_CHARACTERISTIC_UUID,
+        BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR | BLECharacteristic::PROPERTY_NOTIFY);
+
+    pNotificationCharacterisitc =
+        pNotificationSevice->createCharacteristic(NOTIFICATION_CHARACTERISTIC_UUID, BLECharacteristic::PROPERTY_NOTIFY);
+    pNotificationCharacterisitc->addDescriptor(new BLE2902());
+    pNotificationSevice->start();
+
     // Start configuration service
     pConfigService->start();
 
@@ -163,6 +179,7 @@ void NexusBLE::initBLE()
     // Start advertising
     BLEAdvertising* pAdvertising = BLEDevice::getAdvertising();
     pAdvertising->addServiceUUID(CONFIGURATION_SERVICE_UUID);
+    pAdvertising->addServiceUUID(NOTIFICATION_SERVICE_UUID);
     pAdvertising->addServiceUUID(SENSOR_DATA_SERVICE_UUID);
     pAdvertising->addServiceUUID(SENSOR_DATA_SERVICE_PREV_UUID);
     pAdvertising->setScanResponse(false);
@@ -273,10 +290,21 @@ void NexusBLE::sendRealTimeData(SensorData& sd)
 
     pBME280_02Char->setValue(bme02Encoded.c_str());
     pBME280_02Char->notify();
+}
 
-    // Serial.printf("📊 Sensor data sent: Soil=%.1f%%, Temp1=%.1f°C, Temp2=%.1f°C\n", smt100_soilMoisture,
-    // bme280_01_temp,
-    // bme280_02_temp);
+void NexusBLE::SendNotification(String id)
+{
+    String currentTime = HardwareLayer::GetRTCTime().timestamp(DateTime::TIMESTAMP_TIME);
+    JsonDocument ntfyDoc;
+    ntfyDoc["id"] = id;
+    ntfyDoc["timestamp"] = currentTime;
+
+    String ntfyJson;
+    serializeJson(ntfyDoc, ntfyJson);
+    String ntfyEncoded = encodeBase64(ntfyJson);
+
+    pNotificationCharacterisitc->setValue(ntfyEncoded.c_str());
+    pNotificationCharacterisitc->notify();
 }
 
 bool validateJSON(const String& jsonStr)

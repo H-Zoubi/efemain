@@ -1,5 +1,6 @@
 #include "system.h"
 #include "Arduino.h"
+#include "esp32-hal.h"
 
 #include <BLE/NexusBLE.h>
 #include <HardwareLayer/HardwareLayer.h>
@@ -14,7 +15,6 @@ void System::Init()
 
     Log::Init(true, true, "");
     NexusBLE::Init();
-    HardwareLayer::Buzzer(false);
 }
 void System::Update()
 {
@@ -25,11 +25,11 @@ void System::Update()
         SetState(SystemState::ERROR);
         return;
     case SystemState::SLEEP_LOOP:
-        m_SleepTime = 5 * 60000; // set at 5min for saving to SD Card mode
+        m_SleepTime = 60000; // set at 1min for saving to SD Card mode
         StateSleepLoop();
         return;
     case SystemState::BLE_WAKE:
-        m_SleepTime = 5000; // set at 5 sec for bluetooth communication
+        m_SleepTime = 100; // set at .1 sec for bluetooth communication
         StateBLEWake();
         return;
     case SystemState::ERROR:
@@ -41,7 +41,7 @@ void System::Update()
 void System::StateSleepLoop()
 {
     Log::DBG_LogInfo("Cycle");
-    SensorData* sensorData = HardwareLayer::GetSensorData();
+    SensorData sensorData = HardwareLayer::GetSensorData();
     Log::CheckForDataFile();
     Log::LogData(sensorData);
 }
@@ -49,18 +49,51 @@ void System::StateSleepLoop()
 void System::StateBLEWake()
 {
     Log::DBG_LogInfo("BLE");
-    // #ifdef DUMMYDATA
-    //     SensorData dummyData;
-    //     dummyData.busVoltage = 11111;
-    //     dummyData.temperature = 22222;
-    //     dummyData.humidity = 33333;
-    //     dummyData.soilMoisture = 88888;
-    //     NexusBLE::sendRealTimeData(dummyData);
-    // #else
-    // #endif // !DUMMYDATA
-    SensorData* sensorData = HardwareLayer::GetSensorData();
-    NexusBLE::sendRealTimeData(*sensorData);
-    delete sensorData;
+    SensorData sensorData = HardwareLayer::GetSensorData();
+
+    SensorData dummyData;
+    dummyData.busVoltage = HardwareLayer::readVolt();
+    dummyData.temperature = HardwareLayer::readTemp();
+    dummyData.humidity = HardwareLayer::readHum();
+    dummyData.soilMoisture = HardwareLayer::readSoilMoisture();
+
+    if (dummyData.temperature > 28 && dummyData.temperature < 30)
+    {
+        NexusBLE::SendNotification("ventemp02");
+        HardwareLayer::LEDSetColor(255, 255, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 0, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(255, 255, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 0, 0);
+    }
+    else if (dummyData.temperature > 30)
+    {
+        NexusBLE::SendNotification("irrsm01");
+        HardwareLayer::LEDSetColor(255, 0, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 0, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(255, 0, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 0, 0);
+    }
+    else
+    {
+        NexusBLE::SendNotification("cirtemp03");
+        HardwareLayer::LEDSetColor(0, 255, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 0, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 255, 0);
+        delay(200);
+        HardwareLayer::LEDSetColor(0, 0, 0);
+    }
+    NexusBLE::sendRealTimeData(dummyData);
+
+    // SensorData sensorData = HardwareLayer::GetSensorData();
+    // NexusBLE::sendRealTimeData(sensorData);
 }
 
 void System::StateError()

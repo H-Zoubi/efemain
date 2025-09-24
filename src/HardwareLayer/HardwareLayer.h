@@ -14,8 +14,6 @@ struct SensorData
     // BME
     float temperature = 0;
     float humidity = 0;
-
-    // SMT
     float soilMoisture = 0;
 };
 
@@ -23,14 +21,15 @@ class HardwareLayer
 {
   public:
     static void Init();
-    static SensorData* GetSensorData();
+    static SensorData GetSensorData();
     static DateTime GetRTCTime();
     static void LEDSetColor(int red, int green, int blue);
-    static void Buzzer(bool b);
-    static int GetBatteryPercentage(SensorData* sd);
+    static float readSoilMoisture();
+        static float readTemp();
+    static float readHum();
+    static float readVolt();
 
   private:
-    static float readSoilMoisture();
     static void enableTransmission();
     static void enableReception();
 };

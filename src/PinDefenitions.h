@@ -26,12 +26,3 @@ const int BLUE_PIN = 15;
 #define DE_PIN 39 // Driver Enable (Active High)
 
 #define BAUD 9600
-
-// touch
-#define TOUCH_PAD_8_PIN 8
-#define TOUCH_PAD_9_PIN 9
-#define REFERENCE_PAD_PIN 7
-
-// buzzer
-#define BUZZER_PIN 5
-#define _5V_ENABLE 14
